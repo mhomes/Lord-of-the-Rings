@@ -1,6 +1,6 @@
 /*
 Parrallel Minor Project 2: Sequential Merge Sort
-Project By: Allen Burris
+Project By: Allen Burris and Mathew Homes
 2-14-19
 */
 
