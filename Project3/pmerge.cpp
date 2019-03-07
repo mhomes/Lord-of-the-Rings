@@ -8,6 +8,7 @@ Project by: Allen Burris and Mathew Homes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <cmath>
 #include <fstream>
 #include "mpi.h" // message passing interface
 
@@ -16,22 +17,17 @@ Project by: Allen Burris and Mathew Homes
 
 using namespace std;
 
-//need to still run test cases through rank 
-int rank(int a[], int first, int last, int ValToFind) {
-	if (last >= first) {
-		int mid = (last - first) / 2;
+int rank(int *a, int first, int last, int ValToFind) {
 
-		if (a[mid] == ValToFind)
-			return mid;
+	if (a[first + (last - first) / 2] == ValToFind)
+		return (first + (last - first) / 2);
+	else if (first == last - 1)
+		return first;
+	else if (a[first + (last - first) / 2] > ValToFind)
+		return rank(a, first, first + (last - first) / 2, ValToFind);
+	else if (a[first + (last - first) / 2] < ValToFind)
+		return rank(a, first + (last - first) / 2, last, ValToFind);
 
-		else if (a[mid] > ValToFind)
-			return rank(a, first, mid - 1, ValToFind);
-
-		else //(a[mid] < ValToFind)
-			return rank(a, mid + 1, last, ValToFind);
-	}
-
-	return -1;
 }
 
 //checked
@@ -80,7 +76,7 @@ int main(int argc, char * argv[]) {
 	int * input = NULL;
 	int n;
 
-	/* Here is the parrallel version for when smerge and rank are working. 
+	/* Here is the parrallel version for when smerge and rank are working.
 	if (my_rank == 0) {
 
 		cout << "Welcome to the pMerge Program. \n Please enter the size of the array you wish to sort:" << endl;
@@ -108,20 +104,34 @@ int main(int argc, char * argv[]) {
 	*/
 
 	int *a = new int[16];
-	int b[16] = { 1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16};
+	int b[16] = { 1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16 };
+
+	int c[20] = { 1,2,4,5,6,7,9,10,12,14,15,17,20,21,40,50,55,56,59,60 };
+	int * d = new int[20];
+
+	for (int i = 0; i < 20; i++)
+		d[i] = c[i];
+
+	int XD = rank(d, 0, 19, 8);
+	cout << XD << endl;
 
 	for (int i = 0; i < 16; i++)
 		a[i] = b[i];
 	cout << endl;
 
-	if(my_rank == 0)
-		smerge(a, 0, 7, 8, 15);
+	int log = log2(n / 2);
+
+	int * rankA = new int[log];
+	int * rankB = new int[log];
+
+
+
+	smerge(a, 0, 7, 8, 15);
 	/*if (my_rank == 0)
 		for (int i = 0; i < 16; i++)
 			cout << a[i] <<endl;*/
 
 	cout << endl;
-
 
 	// Shut down MPI
 	MPI_Finalize();
