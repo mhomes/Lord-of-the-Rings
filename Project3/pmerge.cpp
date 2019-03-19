@@ -69,6 +69,7 @@ void pmerge(int * a , int * b, int first , int last, int mid, int my_rank, int p
 	
 	for (int i = sampleSize * my_rank; i < n; i += sampleSize*p){
 		int j = my_rank;
+		 //why are we passing only 1 value of a[], rank() takes the whole array
 		localSRankA[j] = rank(&a[mid+1], mid + 1, last, a[0+j]);
 		localSRankB[j] = rank(&a[0], first, mid, a[mid+1+j]);
 		j+=p;
@@ -85,15 +86,15 @@ void pmerge(int * a , int * b, int first , int last, int mid, int my_rank, int p
 
 void mergesort(int *a, int first, int last, int my_rank, int p) {
 	if ((last - first ) <= 8) return; //(last <= first) return;
-	if (last == first + 1) {
-		if (a[first] < a[last]) swap(a[first], a[last]);
-		return; }
-	int mid = (first + last) / 2;
-	mergesort(a, first, mid, my_rank, p);
-	mergesort(a, mid + 1, last, my_rank, p);
-	int * b = new int[last - first + 1];
-	pmerge(a, b, first, mid, last, my_rank, p); 
-	}
+		if (last == first + 1) {
+			if (a[first] < a[last]) swap(a[first], a[last]);
+				return; }
+		int mid = (first + last) / 2;
+		mergesort(a, first, mid, my_rank, p);
+		mergesort(a, mid + 1, last, my_rank, p);
+		int * b = new int[last - first + 1];
+		pmerge(a, b, first, mid, last, my_rank, p); 
+}
 
 int main(int argc, char * argv[]) {
 
@@ -137,34 +138,34 @@ int main(int argc, char * argv[]) {
 		input = new int[n];
 	MPI_Bcast(input, n, MPI_INT, 0, MPI_COMM_WORLD);
 	*/
-if (my_rank= 0) {
-	int *a = new int[16];
-	//a = { 1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16 };
-	n = 16;
-	for (int x = 0; x < n; x++)
-		a[x] = x+1;
-	MPI_Bcast(&a, n, MPI_INT, 0, MPI_COMM_WORLD);
+	if (my_rank= 0) {
+		int *a = new int[16];
+		//a = { 1,3,5,7,9,11,13,15,2,4,6,8,10,12,14,16 };
+		n = 16;
+		for (int x = 0; x < n; x++)
+			a[x] = x+1;
+		MPI_Bcast(&a, n, MPI_INT, 0, MPI_COMM_WORLD);
 	
-	mergesort(a, 0, n-1, my_rank, p);
-	if (my_rank == 0)
-		for (int i = 0; i < 16; i++)
-			cout << a[i] <<endl;
+		mergesort(a, 0, n-1, my_rank, p);//
+		if (my_rank == 0)
+			for (int i = 0; i < 16; i++)
+				cout << a[i] <<endl;
 
-	cout << endl;
-}
-else{
-	int *a = new int[16];
-	n = 16;
-	MPI_Bcast(&a, n, MPI_INT, 0, MPI_COMM_WORLD);
+		cout << endl;
+	}
+	else{
+		int *a = new int[16];
+		n = 16;
+		MPI_Bcast(&a, n, MPI_INT, 0, MPI_COMM_WORLD);
 	
-	mergesort(a, 0, n-1, my_rank, p);
-	if (my_rank == 0)
-		for (int i = 0; i < 16; i++)
-			cout << a[i] <<endl;
+		mergesort(a, 0, n-1, my_rank, p);//
+		if (my_rank == 0)
+			for (int i = 0; i < 16; i++)
+				cout << a[i] <<endl;
 
-	cout << endl;
+		cout << endl;
 
-}
+	}
 /*
 	int c[20] = { 1,2,4,5,6,7,9,10,12,14,15,17,20,21,40,50,55,56,59,60 };
 	int * d = new int[20];
