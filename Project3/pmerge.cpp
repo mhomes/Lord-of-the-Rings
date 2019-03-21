@@ -43,12 +43,13 @@ int rank (int *a, int size, int ValToFind) {
 		
 }
 
-
 //checked
 void smerge(int *a, int f1, int l1, int f2, int l2) {
-	int * hold = new int[l2 + 1];
-	int len = (l2 - f1) + 1;
+	cout << "ok troy" << endl;
+	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
+	int * hold = new int[len];
 
+	cout << "fuck you ,troy" << endl;
 	for (int i = 0; i < len+1; i++)
 		if (f1 <= l1 || f2 <= l2)
 			if (a[f1] < a[f2])
@@ -67,7 +68,7 @@ void smerge(int *a, int f1, int l1, int f2, int l2) {
 
 void pmerge(int * a , int * b, int first , int mid, int last, int my_rank, int p){
 	int n = (last - first + 1);
-	cout<< "n" << last<< endl;
+	//cout<< "n" << last<< endl;
 	int sampleSize = log2(n / 2);
 	int* localSRankA = new  int [sampleSize];
 	int* localSRankB = new  int [sampleSize];
@@ -82,24 +83,50 @@ void pmerge(int * a , int * b, int first , int mid, int last, int my_rank, int p
 	}
 	int j = my_rank;
 	for (int i = sampleSize * my_rank; i < (n/2)+1; i += sampleSize*p){
-		cout <<endl << a[0 +i]<< endl;
+		//cout <<endl << a[0 +i]<< endl;
 		
 		cout<< "sampleSize" << sampleSize<< endl;
-		 //why are we passing only 1 value of a[], rank() takes the whole array
-		localSRankA[j] = rank(&a[mid+1],n/2, a[0+i]); // first half of the array, in project description
-		cout << j << my_rank<<":"<<localSRankA[j]<< endl;
-		cout <<endl << a[mid+1+i]<< endl;
-		localSRankB[j] = rank(&a[0], n/2, a[mid+1+i]); // second half of the array, in project description
-		cout << j << my_rank <<":"<<localSRankB[j]<< endl;
+
+		localSRankA[j] = rank(&a[mid+1],n/2, a[0+i]); 
+		//cout << j << my_rank<<":"<<localSRankA[j]<< endl;
+		//cout <<endl << a[mid+1+i]<< endl;
+		localSRankB[j] = rank(&a[0], n/2, a[mid+1+i]);
+		//cout << j << my_rank <<":"<<localSRankB[j]<< endl;
 		j+=p;
 	}
 
 	MPI_Allreduce(localSRankA, SRankA, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(localSRankB, SRankB, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 	
-	for (int x = 0; x < sampleSize; x++){
+	/*for (int x = 0; x < sampleSize; x++){
 		cout<<SRankA[x];
 		cout<<SRankB[x];
+	}*/
+	
+	j = 0;
+	for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
+		b[i + SRankA[j]] = a[i];
+		j++;
+	}
+	j = 0;
+	for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
+		b[i + SRankB[j]] = a[(n/2)+i];
+		j++;
+	}
+
+	if(my_rank == 0)
+	for (int i = 0; i < n; i += 2*sampleSize) {
+		cout <<"Test on "<<my_rank<<" "<<  b[i] << endl;
+	}
+
+	//if(my_rank == 0)
+	j = 0; 
+	if(my_rank == 0)
+	for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
+
+		cout << i + 1 << " " << SRankB[j] - 1 << " " << (n / 2) + i << " " << SRankA[(n / 2) + j] << endl;
+		smerge(a, i+1, SRankB[j], (n / 2) + i, SRankA[(n / 2) + j]);
+		j++;
 	}
 	
 }		
@@ -154,16 +181,13 @@ int main(int argc, char * argv[]) {
 		
 		for (int x = 1; x < (n/2)+1; x++)
 			a[x+7] = 2 * x;
-		
-		for (int x = 0; x < n; x++){
-			cout<< a[x] << " ";
-		}
+		if(my_rank == 0)
+			for (int x = 0; x < n; x++){
+				cout<< a[x] << " ";
+			}
 		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
 	
 		mergesort(a, 0, n-1, my_rank, p);
-		if (my_rank == 0)
-			for (int i = 0; i < 16; i++)
-				//cout << a[i] <<endl;
 
 		cout << endl;
 	}
