@@ -46,6 +46,7 @@ int rank (int *a, int size, int ValToFind) {
 //checked
 void smerge(int *a, int f1, int l1, int f2, int l2) {
 	cout << "ok troy" << endl;
+	cout << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len];
 
@@ -94,6 +95,7 @@ void pmerge(int * a , int * b, int first , int mid, int last, int my_rank, int p
 		//cout << j << my_rank <<":"<<localSRankB[j]<< endl;
 		j+=p;
 	}
+	cout << j << endl;
 
 	MPI_Allreduce(localSRankA, SRankA, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(localSRankB, SRankB, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -122,12 +124,14 @@ void pmerge(int * a , int * b, int first , int mid, int last, int my_rank, int p
 	//if(my_rank == 0)
 	j = 0; 
 	if(my_rank == 0)
-	for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
+		//for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
+		for (int i = 0; i < 1; i += 2*sampleSize) {
 
-		cout << i + 1 << " " << SRankB[j] - 1 << " " << (n / 2) + i << " " << SRankA[(n / 2) + j] << endl;
-		smerge(a, i+1, SRankB[j], (n / 2) + i, SRankA[(n / 2) + j]);
-		j++;
-	}
+			cout << i + 1 << " " << SRankB[j] - 1 << " " << (n / 2) + i << " " << SRankA[(n / 2) + j] << endl;
+			smerge(a, i+1, SRankB[j], (n / 2) + i, SRankA[(n / 2) + j]);
+			cout << "finished smerge " << i << endl;
+			j++;
+		}
 	
 }		
 
