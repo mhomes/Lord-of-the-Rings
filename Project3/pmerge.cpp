@@ -45,12 +45,10 @@ int rank (int *a, int size, int ValToFind) {
 
 //checked
 void smerge(int *a, int f1, int l1, int f2, int l2) {
-	cout << "ok troy" << endl;
 	cout << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len];
 
-	cout << "fuck you ,troy" << endl;
 	for (int i = 0; i < len+1; i++)
 		if (f1 <= l1 || f2 <= l2)
 			if (a[f1] < a[f2])
@@ -59,11 +57,11 @@ void smerge(int *a, int f1, int l1, int f2, int l2) {
 				hold[i] = a[f2++];
 
 	cout << endl;
-	for (int i = 0; i < l2; i++) {
+	for (int i = 0; i < len+1; i++) {
 		a[i] = hold[i];
 		cout << a[i] << " ";
 	}
-
+	cout<<endl;
 	delete[] hold;
 }
 
@@ -125,10 +123,14 @@ void pmerge(int * a , int * b, int first , int mid, int last, int my_rank, int p
 	j = 0; 
 	if(my_rank == 0)
 		//for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
-		for (int i = 0; i < 1; i += 2*sampleSize) {
-
-			cout << i + 1 << " " << SRankB[j] - 1 << " " << (n / 2) + i << " " << SRankA[(n / 2) + j] << endl;
-			smerge(a, i+1, SRankB[j], (n / 2) + i, SRankA[(n / 2) + j]);
+		for (int i = 0; i < n; i += 2*sampleSize) {
+		// need to stripe it, cant have process zero do every shape ( can wait till shapes are done)
+		// this assumes that each array is size 6, need to find a way to find exact end points of each shape
+			// look at problem in the book
+			
+		// harry recomends that we may need to redo the for loop
+			cout << i<< " " << SRankB[j] << " " << (n / 2) + i << " " << n/2 + SRankA[(j)] << endl;
+			smerge(a, i , SRankB[j], (n / 2) + i, n/2 + SRankA[(j)]);
 			cout << "finished smerge " << i << endl;
 			j++;
 		}
