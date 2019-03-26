@@ -1,7 +1,7 @@
 /*(
 Project 3: pmerge
 Parrallel Algo - Spring 2019
-Thomas version
+Github version
 Project by: Allen Burris and Mathew Homes
 */
 
