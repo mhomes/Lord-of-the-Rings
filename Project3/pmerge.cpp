@@ -1,7 +1,7 @@
 /*(
 Project 3: pmerge
 Parrallel Algo - Spring 2019
-Github version
+Thomas version
 Project by: Allen Burris and Mathew Homes
 */
 
@@ -50,15 +50,39 @@ void smerge(int *a, int f1, int l1, int f2, int l2) {
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len];
 
-	for (int i = 0; i < len + 1; i++)
+	if (l1 < f1) {
+		f1 = f2;
+		l1 = l2;
+	}
+	if (l2 < f2) {
+		f2 = f1;
+		l2 = l1;
+	}
+
+	/*for (int i = 0; i < len; i++) {
+		//cout << i << endl;
 		if (f1 <= l1 || f2 <= l2)
 			if (a[f1] < a[f2])
 				hold[i] = a[f1++];
 			else if (a[f1] > a[f2])
 				hold[i] = a[f2++];
+	}*/
+	int i = 0;
+	while (f1 < l1 && f2 < l2)
+		if (a[f1] < a[f2])
+			hold[i++] = a[f1++];
+		else
+			hold[i++] = a[f2++];
+
+	while (f1 <= l1)
+		hold[i++] = a[f1++];
+
+	while (f2 <= l2)
+		hold[i++] = a[f2++];
+
 
 	cout << endl;
-	for (int i = 0; i < len + 1; i++) {
+	for (int i = 0; i < len; i++) {
 		a[i] = hold[i];
 		cout << a[i] << " ";
 	}
@@ -156,7 +180,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	for (int i = 0; i <= 2 * sampleSize; i++)
 		cout << mergymerge[i] << " ";
 
-
+	//HERE!!!!!!
 	for (int i = 0; i < 0; i++) {
 		smerge(a, SRankA[i], SRankA[i + 1] - 1, SRankB[i + (n / 2)], SRankB[i + (n / 2) + 1] - 1);
 	}
