@@ -1,7 +1,7 @@
 /*(
 Project 3: pmerge
 Parrallel Algo - Spring 2019
-Thomas version
+Github version
 Project by: Allen Burris and Mathew Homes
 */
 
@@ -46,30 +46,13 @@ int rank(int *a, int size, int ValToFind) {
 
 //checked
 void smerge(int *a, int f1, int l1, int f2, int l2) {
-	cout << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
+	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len];
 
-	if (l1 < f1) {
-		f1 = f2;
-		l1 = l2;
-	}
-	if (l2 < f2) {
-		f2 = f1;
-		l2 = l1;
-	}
-
-	/*for (int i = 0; i < len; i++) {
-		//cout << i << endl;
-		if (f1 <= l1 || f2 <= l2)
-			if (a[f1] < a[f2])
-				hold[i] = a[f1++];
-			else if (a[f1] > a[f2])
-				hold[i] = a[f2++];
-	}*/
 	int i = 0;
-	while (f1 < l1 && f2 < l2)
-		if (a[f1] < a[f2])
+	while (f1 <= l1 && f2 <= l2)
+		if (a[f1] <= a[f2])
 			hold[i++] = a[f1++];
 		else
 			hold[i++] = a[f2++];
@@ -80,13 +63,9 @@ void smerge(int *a, int f1, int l1, int f2, int l2) {
 	while (f2 <= l2)
 		hold[i++] = a[f2++];
 
-
-	cout << endl;
-	for (int i = 0; i < len; i++) {
+	for (int i = 0; i < len; i++)
 		a[i] = hold[i];
-		cout << a[i] << " ";
-	}
-	cout << endl;
+
 	delete[] hold;
 }
 
@@ -162,27 +141,35 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 			cout << "finished smerge " << i << endl;
 			j++;
 		}*/
+	cout << endl;
 
-	int * mergymerge = new int[2 * sampleSize];
+	int * mergymergeB = new int[2 * sampleSize];
+	int * mergymergeA = new int[2 * sampleSize];
 	for (int i = 0; i < sampleSize; i++) {
-		mergymerge[i] = i * sampleSize;
-		mergymerge[i + sampleSize] = SRankA[i];
+		mergymergeB[i] = i * sampleSize;
+		mergymergeB[i + sampleSize] = SRankA[i];
+
+		mergymergeA[i] = i * sampleSize;
+		mergymergeA[i + sampleSize] = SRankB[i];
 	}
 
+	smerge(mergymergeB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
+	smerge(mergymergeA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
 
-	cout << endl << endl;
-	for (int i = 0; i < 2 * sampleSize; i++)
-		cout << mergymerge[i] << " ";
-	cout << "hout" << endl;
-	smerge(mergymerge, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
-	cout << "hit" << endl;
-	cout << endl << endl;
+	mergymergeB[2 * sampleSize] = n / 2;
+	mergymergeA[2 * sampleSize] = n / 2;
+
 	for (int i = 0; i <= 2 * sampleSize; i++)
-		cout << mergymerge[i] << " ";
+		cout << mergymergeA[i] << " ";
+	cout << endl;
+	for (int i = 0; i <= 2 * sampleSize; i++)
+		cout << mergymergeB[i] << " ";
 
 	//HERE!!!!!!
-	for (int i = 0; i < 0; i++) {
-		smerge(a, SRankA[i], SRankA[i + 1] - 1, SRankB[i + (n / 2)], SRankB[i + (n / 2) + 1] - 1);
+	cout << "hit" << endl;
+	cout << mergymergeA[0 + 1] << endl;
+	for (int i = 0; i < 1; i++) {
+		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i + (n / 2))], mergymergeB[i + (n / 2) + 1] - 1);
 	}
 
 }
