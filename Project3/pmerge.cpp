@@ -92,7 +92,8 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int * winPos) {
 		win[i + winPos[0]] = hold[i];
 	}
 
-	winPos[0] += len;
+	//winPos[0] += len;
+	cout << winPos[0] << endl;
 
 	delete[] hold;
 }
@@ -142,24 +143,37 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	mergymergeA[2 * sampleSize] = n / 2;
 
 	//HERE!!!!!!
-	int * winPos = new int[1];
+	int * winPos = new int[n];
 	winPos[0] = 0;
 	cout << mergymergeB[0 + (n / 2)] << endl;
+
+	int * shapeSize = new int[2 * sampleSize];
+	for (int i = 0; i < 2 * sampleSize; i++)
+		shapeSize[i] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
+
 	for (int i = my_rank; i < 2 * sampleSize; i += p) {
 		cout << my_rank << " doing: ";
+		winPos[0] += shapeSize[i];
+		cout << shapeSize[i];
 		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, winPos);
+
 	}
+	//Need to figure out how to increment winPos so that when we reduce, we do not have values in the same position. 
+	//We could do some tangly things with send and recv but there must be a better way. 
 
 	cout << "hit" << endl;
 	//MPI_Allgather(a, n, MPI_INT, b, n, MPI_INT, MPI_COMM_WORLD);
-	MPI_Allreduce(b, a, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	//MPI_Allreduce(b, a, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 	cout << "yep" << endl;
 
 	if (my_rank == 0)
-		for (int i = 0; i < n; i++)
-			cout << a[i] << " ";
-	else
-		cout << my_rank << " bitches" << endl;;
+		for (int i = 0; i < n - 1; i++)
+			cout << b[i] << " ";
+	else {
+		for (int i = 0; i < n - 1; i++)
+			cout << b[i] << " ";
+		cout << my_rank << " bitches" << endl;
+	}
 
 }
 
@@ -182,6 +196,8 @@ void mergesort(int *a, int first, int last, int my_rank, int p) {
 	}
 
 	pmerge(a, b, first, mid, last, my_rank, p);
+	if (my_rank == 1)
+		delete[] b;
 }
 
 int main(int argc, char * argv[]) {
@@ -231,10 +247,14 @@ int main(int argc, char * argv[]) {
 		n = 32;
 		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
 		mergesort(a, 0, n - 1, my_rank, p);
+		delete[] a;
 
 	}
 
+	cout << endl << endl << endl;
+
 	// Shut down MPI
+	cout << my_rank << " saying bye..." << endl;
 	MPI_Finalize();
 
 	//delete[] input;
