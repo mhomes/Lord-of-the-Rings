@@ -45,7 +45,7 @@ int rank(int *a, int size, int ValToFind) {
 }
 
 //checked
-void smerge(int *a, int f1, int l1, int f2, int l2) {
+void smergymerge(int *a, int f1, int l1, int f2, int l2) {
 	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len];
@@ -65,6 +65,34 @@ void smerge(int *a, int f1, int l1, int f2, int l2) {
 
 	for (int i = 0; i < len; i++)
 		a[i] = hold[i];
+	delete[] hold;
+}
+
+
+void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int * winPos) {
+	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
+	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
+	int * hold = new int[len];
+
+	int i = 0;
+	while (f1 <= l1 && f2 <= l2)
+		if (a[f1] <= a[f2])
+			hold[i++] = a[f1++];
+		else
+			hold[i++] = a[f2++];
+
+	while (f1 <= l1)
+		hold[i++] = a[f1++];
+
+	while (f2 <= l2)
+		hold[i++] = a[f2++];
+
+	for (int i = 0; i < len; i++) {
+		//cout << i + winPos[0] <<" with hold ="<<hold[i]<< endl;
+		win[i + winPos[0]] = hold[i];
+	}
+
+	winPos[0] += len;
 
 	delete[] hold;
 }
@@ -86,61 +114,15 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	}
 	int j = my_rank;
 	for (int i = sampleSize * my_rank; i < (n / 2) + 1; i += sampleSize * p) {
-		//cout <<endl << a[0 +i]<< endl;
-
-		//cout<< "sampleSize" << sampleSize<< endl;
 
 		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
-		//cout << j << my_rank<<":"<<localSRankA[j]<< endl;
-		//cout <<endl << a[mid+1+i]<< endl;
 		localSRankB[j] = rank(&a[0], n / 2, a[mid + 1 + i]);
-		//cout << j << my_rank <<":"<<localSRankB[j]<< endl;
 		j += p;
 	}
-	cout << j << endl;
 
 	MPI_Allreduce(localSRankA, SRankA, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(localSRankB, SRankB, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-	for (int x = 0; x < sampleSize; x++) {
-		cout << SRankA[x] << " ";
-	}
-	cout << endl;
-
-	for (int x = 0; x < sampleSize; x++) {
-		cout << SRankB[x] << " ";
-	}
-
-	j = 0;
-	/*for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
-		b[i + SRankA[j]] = a[i];
-		j++;
-	}
-	j = 0;
-	for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
-		b[i + SRankB[j]] = a[(n/2)+i];
-		j++;
-	}
-
-	if(my_rank == 0)
-	for (int i = 0; i < n; i += 2*sampleSize) {
-		cout <<"Test on "<<my_rank<<" "<<  b[i] << endl;
-	}*/
-
-	//if(my_rank == 0)
-	/*if(my_rank == 0)
-		//for (int i = 0; i < (n / 2) + 1; i += 2*sampleSize) {
-		for (int i = 0; i < n; i += 2*sampleSize) {
-		// need to stripe it, cant have process zero do every shape ( can wait till shapes are done)
-		// this assumes that each array is size 6, need to find a way to find exact end points of each shape
-			// look at problem in the book
-
-		// harry recomends that we may need to redo the for loop
-			cout << i<< " " << SRankB[j] << " " << (n / 2) + i << " " << n/2 + SRankA[(j)] << endl;
-			smerge(a, i , SRankB[j], (n / 2) + i, n/2 + SRankA[(j)]);
-			cout << "finished smerge " << i << endl;
-			j++;
-		}*/
 	cout << endl;
 
 	int * mergymergeB = new int[2 * sampleSize];
@@ -153,28 +135,36 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 		mergymergeA[i + sampleSize] = SRankB[i];
 	}
 
-	smerge(mergymergeB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
-	smerge(mergymergeA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
+	smergymerge(mergymergeB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
+	smergymerge(mergymergeA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
 
 	mergymergeB[2 * sampleSize] = n / 2;
 	mergymergeA[2 * sampleSize] = n / 2;
 
-	for (int i = 0; i <= 2 * sampleSize; i++)
-		cout << mergymergeA[i] << " ";
-	cout << endl;
-	for (int i = 0; i <= 2 * sampleSize; i++)
-		cout << mergymergeB[i] << " ";
-
 	//HERE!!!!!!
-	cout << "hit" << endl;
-	cout << mergymergeA[0 + 1] << endl;
-	for (int i = 0; i < 1; i++) {
-		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i + (n / 2))], mergymergeB[i + (n / 2) + 1] - 1);
+	int * winPos = new int[1];
+	winPos[0] = 0;
+	cout << mergymergeB[0 + (n / 2)] << endl;
+	for (int i = my_rank; i < 2 * sampleSize; i += p) {
+		cout << my_rank << " doing: ";
+		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, winPos);
 	}
+
+	cout << "hit" << endl;
+	//MPI_Allgather(a, n, MPI_INT, b, n, MPI_INT, MPI_COMM_WORLD);
+	MPI_Allreduce(b, a, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	cout << "yep" << endl;
+
+	if (my_rank == 0)
+		for (int i = 0; i < n; i++)
+			cout << a[i] << " ";
+	else
+		cout << my_rank << " bitches" << endl;;
 
 }
 
 void mergesort(int *a, int first, int last, int my_rank, int p) {
+	cout << my_rank << endl;
 	if ((last - first) <= 16)
 		return; //(last <= first) return;
 	if (last == first + 1) {
@@ -234,12 +224,11 @@ int main(int argc, char * argv[]) {
 		*/
 
 		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
-
 		mergesort(a, 0, n - 1, my_rank, p);
 	}
 	else {
 		int *a = new int[16];
-		n = 16;
+		n = 32;
 		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
 		mergesort(a, 0, n - 1, my_rank, p);
 
