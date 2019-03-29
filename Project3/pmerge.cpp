@@ -70,7 +70,7 @@ void smergymerge(int *a, int f1, int l1, int f2, int l2) {
 
 
 void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int * winPos) {
-	cout<<"here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
+	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len];
 
@@ -144,20 +144,21 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	winPos[0] = 0;
 
 	int * shapeSize = new int[2 * sampleSize];
-	for (int i = 0; i < 2 * sampleSize; i++) {
-		shapeSize[i] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
+	shapeSize[0] = 0;
+	for (int i = 0; i < (2 * sampleSize + 1); i++) {
+		shapeSize[i + 1] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
 		if (my_rank == 0)
 			cout << shapeSize[i] << " | ";
 	}
 	cout << endl;
 
-	for (int i = my_rank; i < 2*sampleSize; i+=p) {
+	for (int i = my_rank; i < 2 * sampleSize; i += p) {
 		cout << my_rank << " doing: ";
 		//cout << shapeSize[i];
-		winPos[0] = shapeSize[i];
-		smerge(a, mergymergeA[i], mergymergeA[i+1]-1, mergymergeB[(i)]+(n/2), mergymergeB[i+1]-1+(n/2), b, winPos);
-		//for (int z = 0; z < p; z++)
-			//winPos[0] += shapeSize[z+1];
+		winPos[0] += shapeSize[i];
+		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, winPos);
+		for (int z = 0; z < p - 1; z++)
+			winPos[0] += shapeSize[z + i + 1];
 
 	}
 	//Need to figure out how to increment winPos so that when we reduce, we do not have values in the same position. 
@@ -165,11 +166,11 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 	cout << "hit" << endl;
 	//MPI_Allgather(a, n, MPI_INT, b, n, MPI_INT, MPI_COMM_WORLD);
-	//MPI_Allreduce(b, a, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 	cout << "yep" << endl;
 
 	if (my_rank == 0)
-		for (int i = 0; i < n-1; i++)
+		for (int i = 0; i < n - 1; i++)
 			cout << b[i] << " ";
 	else {
 		for (int i = 0; i < n - 1; i++)
@@ -198,8 +199,8 @@ void mergesort(int *a, int first, int last, int my_rank, int p) {
 	}
 
 	pmerge(a, b, first, mid, last, my_rank, p);
-	if(my_rank ==1)
-	delete[] b;
+	if (my_rank == 1)
+		delete[] b;
 }
 
 int main(int argc, char * argv[]) {
@@ -225,7 +226,7 @@ int main(int argc, char * argv[]) {
 
 	int * input = NULL;
 	int n;
-	
+
 	if (my_rank == 0) {
 		//int *a = new int[32];
 		int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32,1,2,3,5,7,10,11,12,13,14,15,22,24,26,28,30 };
@@ -249,7 +250,6 @@ int main(int argc, char * argv[]) {
 		n = 32;
 		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
 		mergesort(a, 0, n - 1, my_rank, p);
-		delete[] a;
 
 	}
 
