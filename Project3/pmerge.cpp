@@ -86,7 +86,7 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int * winPos) {
 
 	while (f2 <= l2)
 		hold[i++] = a[f2++];
-
+cout<<"WinPos"<<winPos[0]<<endl;
 	for (int i = 0; i < len; i++) {
 		//cout << i + winPos[0] <<" with hold ="<<hold[i]<< endl;
 		win[i + winPos[0]] = hold[i];
@@ -140,6 +140,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	mergymergeA[2 * sampleSize] = n / 2;
 
 	//HERE!!!!!!
+	// The error is somewhere below
 	int * winPos = new int[n];
 	winPos[0] = 0;
 
@@ -147,18 +148,24 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	shapeSize[0] = 0;
 	for (int i = 0; i < (2 * sampleSize + 1); i++) {
 		shapeSize[i + 1] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
+	}
+	for (int i = 0; i < (2 * sampleSize + 2); i++) {
 		if (my_rank == 0)
 			cout << shapeSize[i] << " | ";
 	}
 	cout << endl;
-
+	
 	for (int i = my_rank; i < 2 * sampleSize; i += p) {
 		cout << my_rank << " doing: ";
 		//cout << shapeSize[i];
-		winPos[0] += shapeSize[i];
+		winPos[0]=0;
+		for (j= 1; j <= i; j++){
+			winPos[0] += shapeSize[j];
+		}
 		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, winPos);
-		for (int z = 0; z < p - 1; z++)
-			winPos[0] += shapeSize[z + i + 1];
+		/*for (int z = 0; z < p ; z++)
+			winPos[0] += shapeSize[z + i];
+		*/
 
 	}
 	//Need to figure out how to increment winPos so that when we reduce, we do not have values in the same position. 
