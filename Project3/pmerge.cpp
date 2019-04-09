@@ -80,6 +80,8 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int n) {
 	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int * hold = new int[len + 1];
+	int tempf2 = f2;
+	int tempf1 = f1;
 
 	int i = 0;
 	while (f1 <= l1 && f2 <= l2)
@@ -94,16 +96,17 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int n) {
 	while (f2 <= l2)
 		hold[i++] = a[f2++];
 
-	cout << f1 << " !!~~!!~~!! " << f2 - (n / 2) << endl;
+	f2 = tempf2;
+	f1 = tempf1;
+	//cout << f1 << " !!~~!!~~!! " << (f2 - (n / 2)) << "   "<<n/2<<endl;
 	for (int i = 0; i < len; i++) {
 		//cout << i + winPos[0] <<" with hold ="<<hold[i]<< endl;
-		if (f1 == 0 || (f2 - (n / 2)) == 0)
-			win[i] = hold[i];
-		else
-			win[i + f1 + (f2 - (n / 2))] = hold[i];
+		win[i + f1 + (f2 - (n / 2))] = hold[i];
 	}
+	//cout << "end of smerge" << endl;
 
-	delete[] hold;
+	//delete[] hold;
+	cout << " true end of smerge" << endl;
 }
 
 void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) {
@@ -189,10 +192,10 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 	if (my_rank == 0)
 		for (int i = 0; i < n; i++)
-			cout << b[i] << " ";
+			cout << a[i] << " ";
 	else {
 		for (int i = 0; i < n; i++)
-			cout << b[i] << " ";
+			cout << a[i] << " ";
 		cout << my_rank << " bitches" << endl;
 	}
 
@@ -200,7 +203,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 void mergesort(int *a, int first, int last, int my_rank, int p) {
 	cout << my_rank << endl;
-	if ((last - first) <= 16)
+	if ((last - first) <= 8)
 		return; //(last <= first) return;
 	if (last == first + 1) {
 		if (a[first] < a[last])
@@ -217,8 +220,8 @@ void mergesort(int *a, int first, int last, int my_rank, int p) {
 	}
 
 	pmerge(a, b, first, mid, last, my_rank, p);
-	if (my_rank == 1)
-		delete[] b;
+
+	delete[] b;
 }
 
 int main(int argc, char * argv[]) {
