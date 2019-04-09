@@ -30,6 +30,13 @@ using namespace std;
 
 }*/
 
+void swap(int *a, int *b) {
+	int * temp = a;
+	a = b;
+	b = temp;
+	delete temp;
+}
+
 int rank(int *a, int size, int ValToFind) {
 	if (size == 1) {
 		if (ValToFind < a[0])
@@ -69,10 +76,10 @@ void smergymerge(int *a, int f1, int l1, int f2, int l2) {
 }
 
 
-void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int * winPos) {
+void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int n) {
 	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
-	int * hold = new int[len];
+	int * hold = new int[len + 1];
 
 	int i = 0;
 	while (f1 <= l1 && f2 <= l2)
@@ -86,30 +93,39 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int * winPos) {
 
 	while (f2 <= l2)
 		hold[i++] = a[f2++];
-	cout << "WinPos" << winPos[0] << endl;
+
+	cout << f1 << " !!~~!!~~!! " << f2 - (n / 2) << endl;
 	for (int i = 0; i < len; i++) {
 		//cout << i + winPos[0] <<" with hold ="<<hold[i]<< endl;
-		win[i + winPos[0]] = hold[i];
+		if (f1 == 0 || (f2 - (n / 2)) == 0)
+			win[i] = hold[i];
+		else
+			win[i + f1 + (f2 - (n / 2))] = hold[i];
 	}
 
 	delete[] hold;
 }
 
 void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) {
+	//cout << " proccess " << my_rank << " in pmerge-1" << endl;
 	int n = (last - first + 1);
 	//cout<< "n" << last<< endl;
 	int sampleSize = log2(n / 2);
-	int* localSRankA = new  int[sampleSize];
-	int* localSRankB = new  int[sampleSize];
-	int* SRankA = new  int[sampleSize];
-	int* SRankB = new  int[sampleSize];
+	//cout << " proccess " << my_rank << " is moving" << endl;
+	int* localSRankA = new int[sampleSize];
+	//cout << " proccess " << my_rank << " is not moving" << endl;
+	int* localSRankB = new int[sampleSize];
 
+	int* SRankA = new int[sampleSize];
+	int* SRankB = new int[sampleSize];
+	//cout << " proccess " << my_rank << " in pmerge" << endl;
 	for (int x = 0; x < sampleSize; x++) {
 		localSRankA[x] = 0;
 		localSRankB[x] = 0;
 		SRankA[x] = 0;
 		SRankB[x] = 0;
 	}
+	//cout << " proccess " << my_rank << " in pmerge1" << endl;
 	int j = my_rank;
 	for (int i = sampleSize * my_rank; i < (n / 2) + 1; i += sampleSize * p) {
 
@@ -141,40 +157,41 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 	//HERE!!!!!!
 	// The error is somewhere below
-	int * winPos = new int[n];
-	winPos[0] = 0;
+	//int * winPos = new int[n];
+	//winPos[0] = 0;
 
-	int * shapeSize = new int[(2 * sampleSize) - 1];
-	for (int i = 0; i < (2 * sampleSize + 1); i++) {
-		shapeSize[i + 1] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
+	/*int * shapeSize = new int[(2 * sampleSize)-1];
+	shapeSize[0] = 0;
+	for (int i = 0; i < (2 * sampleSize)-1; i++) {
+		shapeSize[i+1] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
 	}
 
-	for (int i = 0; i < (2 * sampleSize + 2) - 1; i++) {
+	for (int i = 0; i < (2 * sampleSize + 2)+1; i++) {
 		if (my_rank == 0)
 			cout << shapeSize[i] << " | ";
 	}
-	cout << endl;
+	cout << endl;*/
 
+	cout << mergymergeB[0] + (n / 2) << "-------" << (mergymergeB[0 + 1] - 1) + (n / 2) << endl;
 	for (int i = my_rank; i < (2 * sampleSize); i += p) {
 		cout << my_rank << " doing: ";
 		//cout << shapeSize[i];
-		winPos[0] = 0;
-		for (j = 1; j <= i; j++) {
+		//winPos[0]=0;
+		/*for (j= 1; j <= i; j++){
 			winPos[0] += shapeSize[j];
-		}
-		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, winPos);
+		}*/
+		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, n);
 	}
 
 	cout << "hit " << my_rank << endl;
 	//MPI_Allgather(a, n, MPI_INT, b, n, MPI_INT, MPI_COMM_WORLD);
-	MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-	cout << "yep" << endl;
+	//MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
 	if (my_rank == 0)
-		for (int i = 0; i < n - 1; i++)
+		for (int i = 0; i < n; i++)
 			cout << b[i] << " ";
 	else {
-		for (int i = 0; i < n - 1; i++)
+		for (int i = 0; i < n; i++)
 			cout << b[i] << " ";
 		cout << my_rank << " bitches" << endl;
 	}
@@ -193,7 +210,7 @@ void mergesort(int *a, int first, int last, int my_rank, int p) {
 	int mid = (first + last) / 2;
 	mergesort(a, first, mid, my_rank, p);
 	mergesort(a, mid + 1, last, my_rank, p);
-	int * b = new int[last - first + 1];
+	int * b = new int[(last - first) + 1];
 
 	for (int x = 0; x < (last - first); x++) {
 		b[x] = 0;
@@ -226,12 +243,11 @@ int main(int argc, char * argv[]) {
 	// The real program is here
 
 	int * input = NULL;
-	int n;
+	int n = 32;
 
 	if (my_rank == 0) {
 		//int *a = new int[32];
 		int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32,1,2,3,5,7,10,11,12,13,14,15,22,24,26,28,30 };
-		n = 32;
 		/*for (int x = 0; x < n/2; x++)
 			a[x] = 2 * x + 1;
 
@@ -247,8 +263,7 @@ int main(int argc, char * argv[]) {
 		mergesort(a, 0, n - 1, my_rank, p);
 	}
 	else {
-		int *a = new int[16];
-		n = 32;
+		int *a = new int[n];
 		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
 		mergesort(a, 0, n - 1, my_rank, p);
 
