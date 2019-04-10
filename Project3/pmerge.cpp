@@ -105,32 +105,32 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int n) {
 	}
 	//cout << "end of smerge" << endl;
 
-	//delete[] hold;
+	delete[] hold;
 	cout << " true end of smerge" << endl;
 }
 
 void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) {
-	//cout << " proccess " << my_rank << " in pmerge-1" << endl;
+
 	int n = (last - first + 1);
-	//cout<< "n" << last<< endl;
+
 	int sampleSize = log2(n / 2);
-	//cout << " proccess " << my_rank << " is moving" << endl;
+
 	int* localSRankA = new int[sampleSize];
-	//cout << " proccess " << my_rank << " is not moving" << endl;
+
 	int* localSRankB = new int[sampleSize];
 
 	int* SRankA = new int[sampleSize];
 	int* SRankB = new int[sampleSize];
-	//cout << " proccess " << my_rank << " in pmerge" << endl;
+
 	for (int x = 0; x < sampleSize; x++) {
 		localSRankA[x] = 0;
 		localSRankB[x] = 0;
 		SRankA[x] = 0;
 		SRankB[x] = 0;
 	}
-	//cout << " proccess " << my_rank << " in pmerge1" << endl;
+
 	int j = my_rank;
-	cout<< "my_rank"<<my_rank<<endl;
+	cout << "my_rank" << my_rank << endl;
 	for (int i = sampleSize * my_rank; i < (n / 2) + 1; i += sampleSize * p) {
 
 		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
@@ -158,46 +158,31 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 	mergymergeB[2 * sampleSize] = n / 2;
 	mergymergeA[2 * sampleSize] = n / 2;
-
-	//HERE!!!!!!
-	// The error is somewhere below
-	//int * winPos = new int[n];
-	//winPos[0] = 0;
-
-	/*int * shapeSize = new int[(2 * sampleSize)-1];
-	shapeSize[0] = 0;
-	for (int i = 0; i < (2 * sampleSize)-1; i++) {
-		shapeSize[i+1] = (((mergymergeA[i + 1] - 1) - mergymergeA[i]) + 1) + ((((mergymergeB[i + 1] - 1) + (n / 2)) - (mergymergeB[i] + (n / 2)) + 1));
+	/*cout << "____________________________-" << endl;
+	for (int i = 0; i < 2*sampleSize; i++) {
+		cout << mergymergeB[i]<<" ";
 	}
-
-	for (int i = 0; i < (2 * sampleSize + 2)+1; i++) {
-		if (my_rank == 0)
-			cout << shapeSize[i] << " | ";
+	cout << endl;
+	for (int i = 0; i < 2 * sampleSize; i++) {
+		cout << mergymergeA[i] <<" ";
 	}
 	cout << endl;*/
 
 	cout << mergymergeB[0] + (n / 2) << "-------" << (mergymergeB[0 + 1] - 1) + (n / 2) << endl;
 	for (int i = my_rank; i < (2 * sampleSize); i += p) {
 		cout << my_rank << " doing: ";
-		//cout << shapeSize[i];
-		//winPos[0]=0;
-		/*for (j= 1; j <= i; j++){
-			winPos[0] += shapeSize[j];
-		}*/
 		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, n);
 	}
 
 	cout << "hit " << my_rank << endl;
-	//MPI_Allgather(a, n, MPI_INT, b, n, MPI_INT, MPI_COMM_WORLD);
-	//MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+	MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
-	if (my_rank == 0)
-		for (int i = 0; i < n; i++)
-			cout << b[i] << " ";
-	else {
-		for (int i = 0; i < n; i++)
-			cout << a[i] << " ";
-		cout << my_rank << " bitches" << endl;
+	for (int i = 0; i < n; i++) {
+		cout << a[i] << " ";
+	}
+	cout << endl;
+	for (int i = 0; i < n; i++) {
+		cout << b[i] << " ";
 	}
 
 }
@@ -211,6 +196,7 @@ void mergesort(int *a, int first, int last, int my_rank, int p) {
 			swap(a[first], a[last]);
 		return;
 	}
+	//cout << "Hello form the thing" << endl;
 	int mid = (first + last) / 2;
 	mergesort(a, first, mid, my_rank, p);
 	mergesort(a, mid + 1, last, my_rank, p);
