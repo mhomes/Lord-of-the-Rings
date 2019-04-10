@@ -130,6 +130,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	}
 	//cout << " proccess " << my_rank << " in pmerge1" << endl;
 	int j = my_rank;
+	cout<< "my_rank"<<my_rank<<endl;
 	for (int i = sampleSize * my_rank; i < (n / 2) + 1; i += sampleSize * p) {
 
 		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
@@ -192,7 +193,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 	if (my_rank == 0)
 		for (int i = 0; i < n; i++)
-			cout << a[i] << " ";
+			cout << b[i] << " ";
 	else {
 		for (int i = 0; i < n; i++)
 			cout << a[i] << " ";
