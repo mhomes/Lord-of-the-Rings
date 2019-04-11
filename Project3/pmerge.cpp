@@ -26,6 +26,7 @@ void swap(int *a, int *b) {
 }
 
 int rank(int *a, int size, int ValToFind) {
+	cout<<"size"<<size<<endl;
 	if (size == 1) {
 		if (ValToFind < a[0])
 			return 0;
@@ -115,13 +116,17 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	}
 
 	int j = my_rank;
-	cout << "my_rank" << my_rank << endl;
+	cout << "my_rank " << my_rank << endl;
 	for (int i = sampleSize * my_rank; i < (n / 2) + 1; i += sampleSize * p) {
-
+				cout<<"n"<<n<<endl;
 		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
 		localSRankB[j] = rank(&a[0], n / 2, a[mid + 1 + i]);
-		cout << localSRankA[j] << "' '";
+		cout << localSRankA[j] << "' '"<<endl;
 		j += p;
+		//cout<<"SRankA[i]"<<SRankA[i]<<endl; // -1, 32522
+		//cout<<"SRankB[i]"<<SRankB[i]<<endl; // -1  32522
+		//cout<<"localSRankA"<< " "<<localSRankA[i]<<endl; // 3260 , 8, 81
+		//cout<<"localSRankB"<<" "<<localSRankB[i]<<endl;  // 3260 , 0, 33
 	}
 
 	MPI_Allreduce(localSRankA, SRankA, sampleSize, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -137,10 +142,14 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 		mergymergeA[i] = i * sampleSize;
 		mergymergeA[i + sampleSize] = SRankB[i];
+		//cout<<"mergymergeA"<<mergymergeA[i]<<endl; //(3) 0 3 6..
+		//cout<<"mergymergeB"<<mergymergeB[i]<<endl; //(3) 0 3 6..
+	
 	}
+	//cout<<"sampleSize"<<sampleSize<<endl; // (3) 8 4 2 1
 	cout << " mid test " << endl;
-	smergymerge(mergymergeB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
-	smergymerge(mergymergeA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
+	//smergymerge(mergymergeB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1); // this seg faults
+	//smergymerge(mergymergeA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1); // this seg faults
 
 	mergymergeB[2 * sampleSize] = n / 2;
 	mergymergeA[2 * sampleSize] = n / 2;
@@ -148,7 +157,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	cout << mergymergeB[0] + (n / 2) << "-------" << (mergymergeB[0 + 1] - 1) + (n / 2) << endl;
 	for (int i = my_rank; i < (2 * sampleSize); i += p) {
 		cout << my_rank << " doing: ";
-		smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, n);
+		//smerge(a, mergymergeA[i], mergymergeA[i + 1] - 1, mergymergeB[(i)] + (n / 2), mergymergeB[i + 1] - 1 + (n / 2), b, n);
 	}
 
 	cout << "hit " << my_rank << endl;
@@ -210,11 +219,18 @@ int main(int argc, char * argv[]) {
 	// The real program is here
 
 	int * input = NULL;
-	int n = 32;
+	//int n = 32;
+	int n = 16;
+	int * a = new int[n];
 
 	if (my_rank == 0) {
 		//int *a = new int[32];
-		int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32,1,2,3,5,7,10,11,12,13,14,15,22,24,26,28,30 };
+		//int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32,1,2,3,5,7,10,11,12,13,14,15,22,24,26,28,30 };
+		int a[]= {4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32};
+		/*for (int x = 0; x < n; x++)
+			a[x] = 2*x + 1;
+		
+
 		/*for (int x = 0; x < n/2; x++)
 			a[x] = 2 * x + 1;
 
@@ -225,17 +241,17 @@ int main(int argc, char * argv[]) {
 				cout<< a[x] << " ";
 			}
 		*/
-
-		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
-		mergesort(a, 0, n - 1, my_rank, p);
-	}
-	else {
-		int *a = new int[n];
-		MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
-		mergesort(a, 0, n - 1, my_rank, p);
-
+		
 	}
 
+	cout << "Got here" << my_rank << endl;
+	
+	MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
+	cout << "Got here2" << my_rank << endl;	
+
+	mergesort(a, 0, n - 1, my_rank, p);
+	
+	
 	cout << endl << endl << endl;
 
 	// Shut down MPI
