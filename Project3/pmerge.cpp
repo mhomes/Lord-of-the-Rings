@@ -17,18 +17,6 @@ Project by: Allen Burris and Mathew Homes
 // mpirun -q -np 32 blah
 
 using namespace std;
-/*int rank(int *a, int first, int last, int ValToFind) {
-
-	if (a[first + (last - first) / 2] == ValToFind)
-		return (first + (last - first) / 2);
-	else if (first == last - 1)
-		return first;
-	else if (a[first + (last - first) / 2] > ValToFind)
-		return rank(a, first, first + (last - first) / 2, ValToFind);
-	else if (a[first + (last - first) / 2] < ValToFind)
-		return rank(a, first + (last - first) / 2, last, ValToFind);
-
-}*/
 
 void swap(int *a, int *b) {
 	int * temp = a;
@@ -48,7 +36,6 @@ int rank(int *a, int size, int ValToFind) {
 		return rank(a, size / 2, ValToFind);
 	else
 		return size / 2 + rank(&a[size / 2], size / 2, ValToFind);
-
 }
 
 //checked
@@ -74,7 +61,6 @@ void smergymerge(int *a, int f1, int l1, int f2, int l2) {
 		a[i] = hold[i];
 	delete[] hold;
 }
-
 
 void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int n) {
 	cout << "here are the things " << f1 << " " << l1 << " " << f2 << " " << l2 << endl;
@@ -105,8 +91,7 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int * win, int n) {
 	}
 	//cout << "end of smerge" << endl;
 
-	delete[] hold;
-	cout << " true end of smerge" << endl;
+	//delete[] hold;
 }
 
 void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) {
@@ -123,10 +108,10 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	int* SRankB = new int[sampleSize];
 
 	for (int x = 0; x < sampleSize; x++) {
-		localSRankA[x] = 0;
-		localSRankB[x] = 0;
-		SRankA[x] = 0;
-		SRankB[x] = 0;
+		localSRankA[x] = -1;
+		localSRankB[x] = -1;
+		SRankA[x] = -1;
+		SRankB[x] = -1;
 	}
 
 	int j = my_rank;
@@ -135,6 +120,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 
 		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
 		localSRankB[j] = rank(&a[0], n / 2, a[mid + 1 + i]);
+		cout << localSRankA[j] << "' '";
 		j += p;
 	}
 
@@ -152,21 +138,12 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 		mergymergeA[i] = i * sampleSize;
 		mergymergeA[i + sampleSize] = SRankB[i];
 	}
-
+	cout << " mid test " << endl;
 	smergymerge(mergymergeB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
 	smergymerge(mergymergeA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
 
 	mergymergeB[2 * sampleSize] = n / 2;
 	mergymergeA[2 * sampleSize] = n / 2;
-	/*cout << "____________________________-" << endl;
-	for (int i = 0; i < 2*sampleSize; i++) {
-		cout << mergymergeB[i]<<" ";
-	}
-	cout << endl;
-	for (int i = 0; i < 2 * sampleSize; i++) {
-		cout << mergymergeA[i] <<" ";
-	}
-	cout << endl;*/
 
 	cout << mergymergeB[0] + (n / 2) << "-------" << (mergymergeB[0 + 1] - 1) + (n / 2) << endl;
 	for (int i = my_rank; i < (2 * sampleSize); i += p) {
@@ -175,7 +152,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	}
 
 	cout << "hit " << my_rank << endl;
-	MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+	//MPI_Allreduce(b, a, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
 	for (int i = 0; i < n; i++) {
 		cout << a[i] << " ";
@@ -188,7 +165,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 }
 
 void mergesort(int *a, int first, int last, int my_rank, int p) {
-	cout << my_rank << endl;
+	//cout << my_rank << endl;
 	if ((last - first) <= 8)
 		return; //(last <= first) return;
 	if (last == first + 1) {
