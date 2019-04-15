@@ -1,7 +1,7 @@
 /*(
 Project 3: pmerge
 Parrallel Algo - Spring 2019
-Github version
+Thomas Version version
 Project by: Allen Burris and Mathew Homes
 */
 
@@ -26,7 +26,7 @@ void swap(int *a, int *b) {
 }
 
 int rank(int *a, int size, int ValToFind) {
-	cout<<"size"<<size<<endl;
+	cout << "size" << size << endl;
 	if (size == 1) {
 		if (ValToFind < a[0])
 			return 0;
@@ -52,7 +52,7 @@ void smergymerge(int *a, int f1, int l1, int f2, int l2) {
 		else
 			hold[i++] = a[f2++];
 
-	while (f1 <= l1)
+	while (f1 <= l1)void 
 		hold[i++] = a[f1++];
 
 	while (f2 <= l2)
@@ -118,10 +118,10 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 	int j = my_rank;
 	cout << "my_rank " << my_rank << endl;
 	for (int i = sampleSize * my_rank; i < (n / 2) + 1; i += sampleSize * p) {
-				cout<<"n"<<n<<endl;
+		cout << "n" << n << endl;
 		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
 		localSRankB[j] = rank(&a[0], n / 2, a[mid + 1 + i]);
-		cout << localSRankA[j] << "' '"<<endl;
+		cout << localSRankA[j] << "' '" << endl;
 		j += p;
 		//cout<<"SRankA[i]"<<SRankA[i]<<endl; // -1, 32522
 		//cout<<"SRankB[i]"<<SRankB[i]<<endl; // -1  32522
@@ -144,7 +144,7 @@ void pmerge(int * a, int * b, int first, int mid, int last, int my_rank, int p) 
 		mergymergeA[i + sampleSize] = SRankB[i];
 		//cout<<"mergymergeA"<<mergymergeA[i]<<endl; //(3) 0 3 6..
 		//cout<<"mergymergeB"<<mergymergeB[i]<<endl; //(3) 0 3 6..
-	
+
 	}
 	//cout<<"sampleSize"<<sampleSize<<endl; // (3) 8 4 2 1
 	cout << " mid test " << endl;
@@ -221,15 +221,16 @@ int main(int argc, char * argv[]) {
 	int * input = NULL;
 	//int n = 32;
 	int n = 16;
-	int * a = new int[n];
+	//int * a = new int[n];
+	int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32 };
 
 	if (my_rank == 0) {
 		//int *a = new int[32];
 		//int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32,1,2,3,5,7,10,11,12,13,14,15,22,24,26,28,30 };
-		int a[]= {4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32};
+		//int a[] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32 };
 		/*for (int x = 0; x < n; x++)
 			a[x] = 2*x + 1;
-		
+
 
 		/*for (int x = 0; x < n/2; x++)
 			a[x] = 2 * x + 1;
@@ -241,23 +242,26 @@ int main(int argc, char * argv[]) {
 				cout<< a[x] << " ";
 			}
 		*/
-		
+
 	}
 
 	cout << "Got here" << my_rank << endl;
-	
+
 	MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
-	cout << "Got here2" << my_rank << endl;	
+	cout << "Got here2" << my_rank << endl;
+
+	for (int i = 0; i < n; i++)
+		cout << a[i] << " ";
 
 	mergesort(a, 0, n - 1, my_rank, p);
-	
-	
+
+
 	cout << endl << endl << endl;
 
 	// Shut down MPI
 	cout << my_rank << " saying bye..." << endl;
 	MPI_Finalize();
-
+	cout << "merde";
 	//delete[] input;
 	//delete[] a;
 
