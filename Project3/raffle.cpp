@@ -36,6 +36,7 @@ int rank(int *a, int size, int valToFind) {
 		return (size / 2) + rank(&a[size / 2], size / 2, valToFind);
 }
 
+//Normal Smerge
 void smerge(int *a, int f1, int l1, int f2, int l2, int *win, int n) {
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int *hold = new int[len + 1];
@@ -58,10 +59,10 @@ void smerge(int *a, int f1, int l1, int f2, int l2, int *win, int n) {
 
 	for (int i = 0; i < len; i++)
 		win[i + f1 + (f2 - (n / 2))] = hold[i];
-
-	delete[] hold;
+	return;
 }
 
+//smerge for endpoints
 void endmerge(int *a, int f1, int l1, int f2, int l2) {
 	int len = (l1 - f1 + 1) + (l2 - f2 + 1);
 	int *hold = new int[len];
@@ -87,7 +88,6 @@ void pmerge(int * a, int * b, int first, int mid,int last,int my_rank,int p) {
 
 	int n = (last - first) + 1;
 	int sampleSize = log2(n / 2);
-	cout << " n = " << n << endl;
 	int * localSRankA = new int[sampleSize];
 	int * localSRankB = new int[sampleSize];
 
@@ -101,24 +101,20 @@ void pmerge(int * a, int * b, int first, int mid,int last,int my_rank,int p) {
 		SRankB[i] = -1;
 	}
 
+	//Calculate the Ranks
 	int j = my_rank;
 	for (int i = (sampleSize * my_rank); i < n / 2; i += sampleSize*p) {
-		localSRankA[j] = rank(&a[mid + 1], n / 2, a[0 + i]);
-		localSRankB[j] = rank(&a[0], n / 2, a[mid + 1 + i]);
+		localSRankA[j] = rank(&a[n/2], n / 2, a[0 + i]);
+		localSRankB[j] = rank(&a[0], n / 2, a[mid + i+1]);
 		j += p;
 	}
-	cout <<endl<< "sample size is:" << sampleSize<<endl;
-	cout << "ranks are: ";
-	for (int i = 0; i < sampleSize; i++)
-		cout << localSRankB[i] << " ";
 
 	MPI_Allreduce(localSRankA, SRankA, sampleSize, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 	MPI_Allreduce(localSRankB, SRankB, sampleSize, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
-	cout<<":" << endl;
-
-	int * endPointsA = new int[2 * sampleSize];
-	int * endPointsB = new int[2 * sampleSize];
+	//combine ranks and rank values for endpoints
+	int * endPointsA = new int[(2 * sampleSize)+1];
+	int * endPointsB = new int[(2 * sampleSize)+1];
 	for (int i= 0; i < sampleSize; i++) {
 		endPointsA[i] = i * sampleSize;
 		endPointsA[i + sampleSize] = SRankB[i];
@@ -127,32 +123,39 @@ void pmerge(int * a, int * b, int first, int mid,int last,int my_rank,int p) {
 		endPointsB[i + sampleSize] = SRankA[i];
 	}
 
-	endmerge(endPointsA, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
-	endmerge(endPointsB, 0, sampleSize - 1, sampleSize, (2 * sampleSize) - 1);
+	endmerge(endPointsA, 0, sampleSize - 1, sampleSize, (2 * sampleSize)-1);
+	endmerge(endPointsB, 0, sampleSize - 1, sampleSize, (2 * sampleSize)-1);
 
-	endPointsA[sampleSize] = n / 2;
-	endPointsB[sampleSize] = n / 2;
+	endPointsA[2*sampleSize] = n / 2;
+	endPointsB[2*sampleSize] = n / 2;
 
-
-	for (int i = 0; i <= 2 * sampleSize; i++)
-		cout << endPointsA[i] << " ";
-	cout << endl;
-	for (int i = 0; i <= 2 * sampleSize; i++)
-		cout << endPointsB[i] << " ";
-	cout << endl;
-
-	for (int i = my_rank; i < 2 * sampleSize; i += p) {
+	//Distribute the Smerge
+	int i = my_rank;
+	while (i < 2 * sampleSize) {
 		smerge(a, endPointsA[i], endPointsA[i + 1] - 1, endPointsB[i] + n / 2, endPointsB[i + 1] - 1 + (n / 2), b, n);
-		cout << i << endl;
+		i += p;
 	}
 
+	//Fits sorted array into correct position in main array. 
+	int * c = new int[n];
+	for (int i = 0; i < n; i++)
+		c[i] = -1;
+	MPI_Allreduce(b, c, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+
+	for (int i = first; i < n; i++)
+		a[i] = c[i];
+
+	delete[] c;
 }
 
 void mergesort(int *a, int first, int last, int my_rank, int p) {
-	if ((last - first) <= 8)
+	//Base Case of 4
+	if ((last - first) <= 4) {
 		return;
+	}
 	if (last == first + 1) {
-		if (a[first] < a[last])
+		//naver used cause Base case of 4
+		if (a[first] > a[last])
 			swap(a[first], a[last]);
 		return;
 	}
@@ -169,7 +172,8 @@ void mergesort(int *a, int first, int last, int my_rank, int p) {
 
 	delete[]b;
 }
-
+//This is a function
+// This is a comment.
 int main(int argc, char * argv[]) {
 
 	int my_rank;			// my CPU number for this process
@@ -191,19 +195,33 @@ int main(int argc, char * argv[]) {
 
 	// The real program is here
 
-	int n = 16;
-	int a[] = { 20,21,23,25,27,29,31,32,4,6,8,9,16,17,18,19};
+	int n = 64;
+	int * a = new int[n];
 
 	if (my_rank == 0) {
-		;
+		int b[32] = { 4,6,8,9,16,17,18,19,20,21,23,25,27,29,31,32,1,2,3,5,7,10,11,12,13,14,15,22,24,26,28,30 };
+		for (int i = 0; i < 32; i++) {
+			a[i] = b[i];
+			a[i + 32] = a[i] + 32;
+		}
 	}
 	MPI_Bcast(a, n, MPI_INT, 0, MPI_COMM_WORLD);
 
-	for (int i = 0; i < n; i++) {
-		cout << a[i] << " ";
+	if (my_rank == 0) {
+		cout << "The array before sorting" << endl;
+		for (int i = 0; i < n; i++) {
+			cout << a[i] << " ";
+		}
 	}
 
 	mergesort(a,0,n-1, my_rank,p);
+
+	if (my_rank == 0) {
+		cout << "The array After sorting" << endl;
+		for (int i = 0; i < n; i++) {
+			cout << a[i] << " ";
+		}
+	}
 
 	cout<<endl << my_rank << " saying bye..." << endl;
 	MPI_Finalize();
